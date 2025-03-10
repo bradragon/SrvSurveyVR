@@ -137,7 +137,8 @@ namespace SrvSurvey.vr
                 MathF.PI / 180 * rotation.X, MathF.PI / 180 * rotation.Z);
             
             // divide by 10 to avoid decimals on the fomrs
-            var pos = Matrix4x4.CreateTranslation(pp.vrPosition with { Z = -pp.vrPosition.Z });
+            var pos = Matrix4x4.CreateTranslation(
+                new Vector3(pp.vrPosition.X / 10, pp.vrPosition.Y / 10, -pp.vrPosition.Z / 10));
             var sc = Matrix4x4.CreateScale(pp.vrScale / 10); // yes 10
             
             var tr = Matrix4x4.Multiply(rot, sc);
