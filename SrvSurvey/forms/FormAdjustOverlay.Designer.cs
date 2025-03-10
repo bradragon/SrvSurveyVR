@@ -42,11 +42,24 @@
             numY = new NumericUpDown();
             numX = new NumericUpDown();
             groupBox1 = new GroupBox();
+            flowLayoutPanel8 = new FlowLayoutPanel();
+            label3 = new Label();
+            numVRScale = new NumericUpDown();
+            flowLayoutPanel6 = new FlowLayoutPanel();
+            label1 = new Label();
+            numVRX = new NumericUpDown();
+            numVRY = new NumericUpDown();
+            numVRZ = new NumericUpDown();
             flowLayoutPanel5 = new FlowLayoutPanel();
             checkOpacity = new CheckBox();
             numOpacity = new NumericUpDown();
             btnReset = new Button();
             flowLayoutPanel4 = new FlowLayoutPanel();
+            flowLayoutPanel7 = new FlowLayoutPanel();
+            label2 = new Label();
+            numVRYaw = new NumericUpDown();
+            numVRPitch = new NumericUpDown();
+            numVRRoll = new NumericUpDown();
             flowLayoutPanel1 = new FlowLayoutPanel();
             checkHScreen = new CheckBox();
             flowLayoutPanel2 = new FlowLayoutPanel();
@@ -54,12 +67,23 @@
             flowLayoutPanel3 = new FlowLayoutPanel();
             lblAdvise = new Label();
             checkShowAll = new CheckBox();
+            comboBox1 = new ComboBox();
             ((System.ComponentModel.ISupportInitialize)numY).BeginInit();
             ((System.ComponentModel.ISupportInitialize)numX).BeginInit();
             groupBox1.SuspendLayout();
+            flowLayoutPanel8.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numVRScale).BeginInit();
+            flowLayoutPanel6.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numVRX).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numVRY).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numVRZ).BeginInit();
             flowLayoutPanel5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numOpacity).BeginInit();
             flowLayoutPanel4.SuspendLayout();
+            flowLayoutPanel7.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numVRYaw).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numVRPitch).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)numVRRoll).BeginInit();
             flowLayoutPanel1.SuspendLayout();
             flowLayoutPanel2.SuspendLayout();
             flowLayoutPanel3.SuspendLayout();
@@ -84,7 +108,7 @@
             comboPlotter.Items.AddRange(new object[] { "Choose an overlay..." });
             comboPlotter.Location = new Point(143, 6);
             comboPlotter.Name = "comboPlotter";
-            comboPlotter.Size = new Size(269, 23);
+            comboPlotter.Size = new Size(300, 23);
             comboPlotter.TabIndex = 1;
             comboPlotter.DropDown += comboPlotter_DropDown;
             comboPlotter.SelectedIndexChanged += comboPlotter_SelectedIndexChanged;
@@ -229,16 +253,117 @@
             // groupBox1
             // 
             groupBox1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            groupBox1.Controls.Add(comboBox1);
+            groupBox1.Controls.Add(flowLayoutPanel8);
+            groupBox1.Controls.Add(flowLayoutPanel6);
             groupBox1.Controls.Add(flowLayoutPanel5);
             groupBox1.Controls.Add(btnReset);
             groupBox1.Controls.Add(flowLayoutPanel4);
+            groupBox1.Controls.Add(flowLayoutPanel7);
             groupBox1.Controls.Add(flowLayoutPanel1);
             groupBox1.Controls.Add(flowLayoutPanel2);
             groupBox1.Location = new Point(15, 58);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(400, 163);
+            groupBox1.Size = new Size(431, 234);
             groupBox1.TabIndex = 2;
             groupBox1.TabStop = false;
+            // 
+            // flowLayoutPanel8
+            // 
+            flowLayoutPanel8.AutoSize = true;
+            flowLayoutPanel8.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            flowLayoutPanel8.Controls.Add(label3);
+            flowLayoutPanel8.Controls.Add(numVRScale);
+            flowLayoutPanel8.Location = new Point(128, 199);
+            flowLayoutPanel8.Name = "flowLayoutPanel8";
+            flowLayoutPanel8.Size = new Size(126, 29);
+            flowLayoutPanel8.TabIndex = 8;
+            // 
+            // label3
+            // 
+            label3.Anchor = AnchorStyles.Right;
+            label3.AutoSize = true;
+            label3.FlatStyle = FlatStyle.System;
+            label3.Location = new Point(3, 7);
+            label3.Name = "label3";
+            label3.Size = new Size(64, 15);
+            label3.TabIndex = 0;
+            label3.Text = "&VR Scale %";
+            // 
+            // numVRScale
+            // 
+            numVRScale.Enabled = false;
+            numVRScale.Location = new Point(73, 3);
+            numVRScale.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
+            numVRScale.Name = "numVRScale";
+            numVRScale.Size = new Size(50, 23);
+            numVRScale.TabIndex = 1;
+            numVRScale.TextAlign = HorizontalAlignment.Right;
+            numVRScale.Value = new decimal(new int[] { 99, 0, 0, 0 });
+            numVRScale.ValueChanged += numVrScale_ValueChanged;
+            // 
+            // flowLayoutPanel6
+            // 
+            flowLayoutPanel6.AutoSize = true;
+            flowLayoutPanel6.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            flowLayoutPanel6.Controls.Add(label1);
+            flowLayoutPanel6.Controls.Add(numVRX);
+            flowLayoutPanel6.Controls.Add(numVRY);
+            flowLayoutPanel6.Controls.Add(numVRZ);
+            flowLayoutPanel6.Location = new Point(130, 129);
+            flowLayoutPanel6.Name = "flowLayoutPanel6";
+            flowLayoutPanel6.Size = new Size(269, 29);
+            flowLayoutPanel6.TabIndex = 6;
+            // 
+            // label1
+            // 
+            label1.Anchor = AnchorStyles.Right;
+            label1.AutoSize = true;
+            label1.FlatStyle = FlatStyle.System;
+            label1.Location = new Point(3, 7);
+            label1.Name = "label1";
+            label1.Size = new Size(95, 15);
+            label1.TabIndex = 0;
+            label1.Text = "&VR Offset X, Y, Z:";
+            // 
+            // numVRX
+            // 
+            numVRX.Enabled = false;
+            numVRX.Location = new Point(104, 3);
+            numVRX.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
+            numVRX.Minimum = new decimal(new int[] { 9999, 0, 0, int.MinValue });
+            numVRX.Name = "numVRX";
+            numVRX.Size = new Size(50, 23);
+            numVRX.TabIndex = 1;
+            numVRX.TextAlign = HorizontalAlignment.Right;
+            numVRX.Value = new decimal(new int[] { 9999, 0, 0, 0 });
+            numVRX.ValueChanged += numVrOffset_ValueChanged;
+            // 
+            // numVRY
+            // 
+            numVRY.Enabled = false;
+            numVRY.Location = new Point(160, 3);
+            numVRY.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
+            numVRY.Minimum = new decimal(new int[] { 9999, 0, 0, int.MinValue });
+            numVRY.Name = "numVRY";
+            numVRY.Size = new Size(50, 23);
+            numVRY.TabIndex = 2;
+            numVRY.TextAlign = HorizontalAlignment.Right;
+            numVRY.Value = new decimal(new int[] { 9999, 0, 0, 0 });
+            numVRY.ValueChanged += numVrOffset_ValueChanged;
+            // 
+            // numVRZ
+            // 
+            numVRZ.Enabled = false;
+            numVRZ.Location = new Point(216, 3);
+            numVRZ.Maximum = new decimal(new int[] { 9999, 0, 0, 0 });
+            numVRZ.Minimum = new decimal(new int[] { 9999, 0, 0, int.MinValue });
+            numVRZ.Name = "numVRZ";
+            numVRZ.Size = new Size(50, 23);
+            numVRZ.TabIndex = 3;
+            numVRZ.TextAlign = HorizontalAlignment.Right;
+            numVRZ.Value = new decimal(new int[] { 9999, 0, 0, 0 });
+            numVRZ.ValueChanged += numVrOffset_ValueChanged;
             // 
             // flowLayoutPanel5
             // 
@@ -284,7 +409,7 @@
             btnReset.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
             btnReset.AutoSize = true;
             btnReset.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            btnReset.Location = new Point(349, 132);
+            btnReset.Location = new Point(380, 203);
             btnReset.Name = "btnReset";
             btnReset.Size = new Size(45, 25);
             btnReset.TabIndex = 3;
@@ -303,6 +428,66 @@
             flowLayoutPanel4.Name = "flowLayoutPanel4";
             flowLayoutPanel4.Size = new Size(183, 29);
             flowLayoutPanel4.TabIndex = 2;
+            // 
+            // flowLayoutPanel7
+            // 
+            flowLayoutPanel7.AutoSize = true;
+            flowLayoutPanel7.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            flowLayoutPanel7.Controls.Add(label2);
+            flowLayoutPanel7.Controls.Add(numVRYaw);
+            flowLayoutPanel7.Controls.Add(numVRPitch);
+            flowLayoutPanel7.Controls.Add(numVRRoll);
+            flowLayoutPanel7.Location = new Point(128, 164);
+            flowLayoutPanel7.Name = "flowLayoutPanel7";
+            flowLayoutPanel7.Size = new Size(289, 29);
+            flowLayoutPanel7.TabIndex = 7;
+            // 
+            // label2
+            // 
+            label2.Anchor = AnchorStyles.Right;
+            label2.AutoSize = true;
+            label2.FlatStyle = FlatStyle.System;
+            label2.Location = new Point(3, 7);
+            label2.Name = "label2";
+            label2.Size = new Size(115, 15);
+            label2.TabIndex = 0;
+            label2.Text = "&VR Yaw, Pitch, Roll °:";
+            // 
+            // numVRYaw
+            // 
+            numVRYaw.Enabled = false;
+            numVRYaw.Location = new Point(124, 3);
+            numVRYaw.Maximum = new decimal(new int[] { 359, 0, 0, 0 });
+            numVRYaw.Name = "numVRYaw";
+            numVRYaw.Size = new Size(50, 23);
+            numVRYaw.TabIndex = 1;
+            numVRYaw.TextAlign = HorizontalAlignment.Right;
+            numVRYaw.Value = new decimal(new int[] { 359, 0, 0, 0 });
+            numVRYaw.ValueChanged += vrRotation_ValueChanged;
+            // 
+            // numVRPitch
+            // 
+            numVRPitch.Enabled = false;
+            numVRPitch.Location = new Point(180, 3);
+            numVRPitch.Maximum = new decimal(new int[] { 359, 0, 0, 0 });
+            numVRPitch.Name = "numVRPitch";
+            numVRPitch.Size = new Size(50, 23);
+            numVRPitch.TabIndex = 2;
+            numVRPitch.TextAlign = HorizontalAlignment.Right;
+            numVRPitch.Value = new decimal(new int[] { 359, 0, 0, 0 });
+            numVRPitch.ValueChanged += vrRotation_ValueChanged;
+            // 
+            // numVRRoll
+            // 
+            numVRRoll.Enabled = false;
+            numVRRoll.Location = new Point(236, 3);
+            numVRRoll.Maximum = new decimal(new int[] { 359, 0, 0, 0 });
+            numVRRoll.Name = "numVRRoll";
+            numVRRoll.Size = new Size(50, 23);
+            numVRRoll.TabIndex = 3;
+            numVRRoll.TextAlign = HorizontalAlignment.Right;
+            numVRRoll.Value = new decimal(new int[] { 359, 0, 0, 0 });
+            numVRRoll.ValueChanged += vrRotation_ValueChanged;
             // 
             // flowLayoutPanel1
             // 
@@ -364,7 +549,7 @@
             flowLayoutPanel3.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             flowLayoutPanel3.Controls.Add(btnAccept);
             flowLayoutPanel3.Controls.Add(btnCancel);
-            flowLayoutPanel3.Location = new Point(253, 274);
+            flowLayoutPanel3.Location = new Point(284, 337);
             flowLayoutPanel3.Name = "flowLayoutPanel3";
             flowLayoutPanel3.Size = new Size(162, 29);
             flowLayoutPanel3.TabIndex = 4;
@@ -372,9 +557,9 @@
             // lblAdvise
             // 
             lblAdvise.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            lblAdvise.Location = new Point(15, 228);
+            lblAdvise.Location = new Point(15, 295);
             lblAdvise.Name = "lblAdvise";
-            lblAdvise.Size = new Size(400, 39);
+            lblAdvise.Size = new Size(431, 39);
             lblAdvise.TabIndex = 3;
             lblAdvise.Text = "\"Screen\" based positions will be relative to the top / left corner of your primary monitor.";
             // 
@@ -391,12 +576,24 @@
             checkShowAll.UseVisualStyleBackColor = true;
             checkShowAll.CheckedChanged += checkShowAll_CheckedChanged;
             // 
+            // comboBox1
+            // 
+            comboBox1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBox1.FlatStyle = FlatStyle.System;
+            comboBox1.FormattingEnabled = true;
+            comboBox1.Items.AddRange(new object[] { "Default", "Ship", "SRV", "System Map", "Galaxy Map", "FSS", "DSS" });
+            comboBox1.Location = new Point(14, 166);
+            comboBox1.Name = "comboBox1";
+            comboBox1.Size = new Size(85, 23);
+            comboBox1.TabIndex = 9;
+            // 
             // FormAdjustOverlay
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CancelButton = btnCancel;
-            ClientSize = new Size(427, 315);
+            ClientSize = new Size(458, 378);
             Controls.Add(lblAdvise);
             Controls.Add(flowLayoutPanel3);
             Controls.Add(checkShowAll);
@@ -414,11 +611,24 @@
             ((System.ComponentModel.ISupportInitialize)numX).EndInit();
             groupBox1.ResumeLayout(false);
             groupBox1.PerformLayout();
+            flowLayoutPanel8.ResumeLayout(false);
+            flowLayoutPanel8.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numVRScale).EndInit();
+            flowLayoutPanel6.ResumeLayout(false);
+            flowLayoutPanel6.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numVRX).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numVRY).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numVRZ).EndInit();
             flowLayoutPanel5.ResumeLayout(false);
             flowLayoutPanel5.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)numOpacity).EndInit();
             flowLayoutPanel4.ResumeLayout(false);
             flowLayoutPanel4.PerformLayout();
+            flowLayoutPanel7.ResumeLayout(false);
+            flowLayoutPanel7.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numVRYaw).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numVRPitch).EndInit();
+            ((System.ComponentModel.ISupportInitialize)numVRRoll).EndInit();
             flowLayoutPanel1.ResumeLayout(false);
             flowLayoutPanel1.PerformLayout();
             flowLayoutPanel2.ResumeLayout(false);
@@ -456,5 +666,19 @@
         private FlowLayoutPanel flowLayoutPanel5;
         private NumericUpDown numOpacity;
         private CheckBox checkShowAll;
+        private FlowLayoutPanel flowLayoutPanel8;
+        private Label label3;
+        private NumericUpDown numVRScale;
+        private FlowLayoutPanel flowLayoutPanel6;
+        private Label label1;
+        private NumericUpDown numVRX;
+        private NumericUpDown numVRY;
+        private NumericUpDown numVRZ;
+        private FlowLayoutPanel flowLayoutPanel7;
+        private Label label2;
+        private NumericUpDown numVRYaw;
+        private NumericUpDown numVRPitch;
+        private NumericUpDown numVRRoll;
+        private ComboBox comboBox1;
     }
 }

@@ -3,6 +3,7 @@ using SrvSurvey.plotters;
 using SrvSurvey.Properties;
 using SrvSurvey.widgets;
 using System.ComponentModel;
+using System.Numerics;
 
 namespace SrvSurvey.forms
 {
@@ -39,6 +40,13 @@ namespace SrvSurvey.forms
                 numY,
                 checkOpacity,
                 numOpacity,
+                numVRScale,
+                numVRX,
+                numVRY,
+                numVRZ,
+                numVRYaw,
+                numVRPitch,
+                numVRRoll,
             };
 
             this.prepPlotters();
@@ -76,6 +84,14 @@ namespace SrvSurvey.forms
 
             numX.Value = 0;
             numY.Value = 0;
+
+            numVRScale.Value = 100;
+            numVRX.Value = 0;
+            numVRY.Value = 0;
+            numVRZ.Value = 0;
+            numVRYaw.Value = 0;
+            numVRPitch.Value = 0;
+            numVRRoll.Value = 0;
 
             if (fake != null)
             {
@@ -159,6 +175,14 @@ namespace SrvSurvey.forms
             checkOpacity.Checked = pp.opacity.HasValue;
             numOpacity.Enabled = checkOpacity.Checked;
             numOpacity.Value = (decimal)(pp.opacity.HasValue ? pp.opacity.Value : Game.settings.Opacity) * 100;
+
+            numVRScale.Value = (decimal)pp.vrScale;
+            numVRX.Value = (decimal)pp.vrPosition.X;
+            numVRY.Value = (decimal)pp.vrPosition.Y;
+            numVRZ.Value = (decimal)pp.vrPosition.Z;
+            numVRPitch.Value = (decimal)pp.vrRotation.X;
+            numVRYaw.Value = (decimal)pp.vrRotation.Y;
+            numVRRoll.Value = (decimal)pp.vrRotation.Z;
 
             // populate controls...
             foreach (var ctrl in enablementControls) ctrl.Enabled = true;
@@ -330,6 +354,43 @@ namespace SrvSurvey.forms
             if (targetName == null || pp == null) return;
 
             pp.opacity = (float)numOpacity.Value / 100f;
+
+            Program.repositionPlotters();
+        }
+
+        private void numVrScale_ValueChanged(object sender, EventArgs e)
+        {
+            if (changing || disabled(sender)) return;
+
+            var pp = PlotPos.get(targetName);
+            if (targetName == null || pp == null) return;
+
+            pp.vrScale = (float)numVRScale.Value;
+
+            Program.repositionPlotters();
+        }
+
+        private void numVrOffset_ValueChanged(object sender, EventArgs e)
+        {
+            if (changing || disabled(sender)) return;
+
+            var pp = PlotPos.get(targetName);
+            if (targetName == null || pp == null) return;
+
+            pp.vrPosition = new Vector3((float)numVRX.Value, (float)numVRY.Value, (float)numVRZ.Value);
+
+            Program.repositionPlotters();
+        }
+
+        private void vrRotation_ValueChanged(object sender, EventArgs e)
+        {
+            if (changing || disabled(sender)) return;
+
+            var pp = PlotPos.get(targetName);
+            if (targetName == null || pp == null) return;
+
+            pp.vrScale = (float)numVRScale.Value;
+            pp.vrRotation = new Vector3((float)numVRPitch.Value, (float)numVRYaw.Value, (float)numVRRoll.Value);
 
             Program.repositionPlotters();
         }

@@ -7,9 +7,11 @@ using SrvSurvey.vr;
 using SrvSurvey.widgets;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
+using System.Numerics;
 using System.Reflection;
 using System.Resources;
 using System.Text;
+using System.Windows.Forms;
 
 namespace SrvSurvey.plotters
 {
@@ -19,7 +21,9 @@ namespace SrvSurvey.plotters
     [System.ComponentModel.DesignerCategory("")]
     internal abstract partial class PlotBase : Form, PlotterForm, IDisposable
     {
-        private VROverlay overlay;
+        // public bool tweakingVR;
+        public static bool displayVR = true;
+        private VROverlay? vrOverlay;
 
         protected Game game = Game.activeGame!;
         public TrackingDelta? touchdownLocation0; // TODO: move to PlotSurfaceBase // make protected again
@@ -76,7 +80,27 @@ namespace SrvSurvey.plotters
             // Does this cause windows to become visible when alt-tabbing?
             this.Text = this.Name;
 
-            overlay = new VROverlay(this);
+            if (PlotBase.displayVR)
+                Program.defer(() => this.SetupVROverlay());
+        }
+
+        private void SetupVROverlay()
+        {
+            if (this.IsHandleCreated)
+            {
+                this.vrOverlay = new VROverlay($"SrvSurvey {this.Name}[{this.Handle}]");
+            }
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            
+            if (this.vrOverlay != null)
+            {
+                this.vrOverlay.Close();
+                this.vrOverlay = null;
+            }
         }
 
         protected override bool ShowWithoutActivation => true;
@@ -226,6 +250,9 @@ namespace SrvSurvey.plotters
 
             if (this.Opacity != newOpacity)
                 this.Opacity = newOpacity; // ok
+            
+            if (this.vrOverlay != null)
+                this.vrOverlay.Update(this);
         }
 
         public virtual void reposition(Rectangle gameRect)
@@ -429,6 +456,9 @@ namespace SrvSurvey.plotters
 
                 if (FormAdjustOverlay.targetName == this.Name)
                     ifAdjustmentTarget(g, this);
+
+                if (this.vrOverlay != null)
+                    this.vrOverlay.Update(this);
             }
             catch (Exception ex)
             {
@@ -1534,7 +1564,6 @@ namespace SrvSurvey.plotters
    * Edits to this file will take immediate effect.
    */
 ");
-
             var lines = plotterPositions.Keys
                 .Order()
                 .Select(key => $"  \"{key}\": \"{plotterPositions[key]}\"");
@@ -1609,6 +1638,48 @@ namespace SrvSurvey.plotters
                 return Game.settings.Opacity;
         }
 
+        public static float getVRScale(PlotterForm form, float defaultValue = 1)
+        {
+            return getVRScale(form.GetType().Name, defaultValue);
+        }
+        
+        public static float getVRScale(string formTypeName, float defaultValue = 1)
+        {
+            if (Program.tempHideAllPlotters || (!Elite.gameHasFocus && !Debugger.IsAttached)) return defaultValue;
+
+            var pp = plotterPositions.GetValueOrDefault(formTypeName);
+
+            return pp?.vrScale ?? defaultValue;
+        }
+
+        public static Vector3 getVRPosition(PlotterForm form)
+        {
+            return getVRPosition(form.GetType().Name);
+        }
+        
+        public static Vector3 getVRPosition(string formTypeName)
+        {
+            if (Program.tempHideAllPlotters || (!Elite.gameHasFocus && !Debugger.IsAttached)) return Vector3.Zero;
+
+            var pp = plotterPositions.GetValueOrDefault(formTypeName);
+
+            return pp?.vrPosition ?? Vector3.Zero;
+        }
+
+        public static Vector3 getVRRotation(PlotterForm form)
+        {
+            return getVRRotation(form.GetType().Name);
+        }
+        
+        public static Vector3 getVRRotation(string formTypeName)
+        {
+            if (Program.tempHideAllPlotters || (!Elite.gameHasFocus && !Debugger.IsAttached)) return Vector3.Zero;
+
+            var pp = plotterPositions.GetValueOrDefault(formTypeName);
+
+            return pp?.vrRotation ?? Vector3.Zero;
+        }
+
         public static void reposition(PlotterForm form, Rectangle rect, string? formTypeName = null)
         {
             formTypeName = formTypeName ?? form.GetType().Name;
@@ -1673,27 +1744,85 @@ namespace SrvSurvey.plotters
         public int y;
         public float? opacity;
 
+        public float vrScale;
+        public Vector3 vrRotation;
+        public Vector3 vrPosition;
+
         public PlotPos(string txt)
         {
             // eg: "left:40,top:50",
 
-            var parts = txt.Split(new char[] { ':', ',' });
-            if (parts.Length < 4) throw new Exception($"Bad plotter position: '{txt}'");
-            this.h = Enum.Parse<Horiz>(parts[0], true);
-            this.x = int.Parse(parts[1]);
-            this.v = Enum.Parse<Vert>(parts[2], true);
-            this.y = int.Parse(parts[3]);
-            if (parts.Length >= 5)
+            var parts = txt.Replace(" ", "").Split(',');
+            if (parts.Length < 2) throw new Exception($"Bad plotter position: '{txt}'");
+
+            foreach (var part in parts)
             {
-                this.opacity = float.Parse(parts[4]); // match culture
-                if (this.opacity < 0 || this.opacity > 1)
-                    throw new ArgumentException("Opacity must be a decimal number between 0 and 1");
+                var leftRight = part.Split(':');
+                if (leftRight.Length != 2) throw new Exception($"Bad plotter position: '{txt}'");
+
+                var keyStr = leftRight[0].ToLowerInvariant();
+                var valueStr = leftRight[1];
+                
+                if (Enum.TryParse<Horiz>(keyStr, true, out var newH))
+                {
+                    this.h = newH;
+                    this.x = int.Parse(valueStr);
+                }
+                else if (Enum.TryParse<Vert>(keyStr, true, out var newV))
+                {
+                    this.v = newV;
+                    this.y = int.Parse(valueStr);
+                }
+                else if (keyStr == nameof(this.opacity).ToLowerInvariant())
+                {
+                    this.opacity = float.Parse(valueStr); // match culture
+                    if (this.opacity < 0 || this.opacity > 1)
+                        throw new ArgumentException("Opacity must be a decimal number between 0 and 1");
+                }
+                else if (keyStr == nameof(this.vrScale).ToLowerInvariant())
+                {
+                    this.vrScale = float.Parse(valueStr); // match culture
+                    if (this.vrScale < 0)
+                        throw new ArgumentException("VRScale must be a decimal number greater than 0");
+                }
+                else if (keyStr == nameof(this.vrPosition).ToLowerInvariant() + nameof(this.vrPosition.X).ToLowerInvariant())
+                {
+                    this.vrPosition.X = float.Parse(valueStr); // match culture
+                }
+                else if (keyStr == nameof(this.vrPosition).ToLowerInvariant() + nameof(this.vrPosition.Y).ToLowerInvariant())
+                {
+                    this.vrPosition.Y = float.Parse(valueStr); // match culture
+                }
+                else if (keyStr == nameof(this.vrPosition).ToLowerInvariant() + nameof(this.vrPosition.Z).ToLowerInvariant())
+                {
+                    this.vrPosition.Z = float.Parse(valueStr); // match culture
+                }
+                else if (keyStr == nameof(this.vrRotation).ToLowerInvariant() + nameof(this.vrRotation.X).ToLowerInvariant())
+                {
+                    this.vrRotation.X = float.Parse(valueStr); // match culture
+                }
+                else if (keyStr == nameof(this.vrRotation).ToLowerInvariant() + nameof(this.vrRotation.Y).ToLowerInvariant())
+                {
+                    this.vrRotation.Y = float.Parse(valueStr); // match culture
+                }
+                else if (keyStr == nameof(this.vrRotation).ToLowerInvariant() + nameof(this.vrRotation.Z).ToLowerInvariant())
+                {
+                    this.vrRotation.Z = float.Parse(valueStr); // match culture
+                }
             }
         }
 
         public override string ToString()
         {
-            return $"{h}:{x}, {v}:{y}".ToLowerInvariant() + (opacity > 0 ? $", {opacity}" : "");
+            return ($"{h}:{x}, {v}:{y}" +
+                   $", {nameof(this.vrScale)}:{this.vrScale}" +
+                   $", {nameof(this.vrPosition)}{nameof(this.vrPosition.X)}:{this.vrPosition.X}" +
+                   $", {nameof(this.vrPosition)}{nameof(this.vrPosition.Y)}:{this.vrPosition.Y}" +
+                   $", {nameof(this.vrPosition)}{nameof(this.vrPosition.Z)}:{this.vrPosition.Z}" +
+                   $", {nameof(this.vrRotation)}{nameof(this.vrRotation.X)}:{this.vrRotation.X}" +
+                   $", {nameof(this.vrRotation)}{nameof(this.vrRotation.Y)}:{this.vrRotation.Y}" +
+                   $", {nameof(this.vrRotation)}{nameof(this.vrRotation.Z)}:{this.vrRotation.Z}" +
+                   (opacity > 0 ? $", {nameof(opacity)}:{opacity}" : "")).ToLowerInvariant();
         }
 
         public enum Horiz

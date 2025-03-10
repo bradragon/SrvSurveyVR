@@ -6,8 +6,12 @@ using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
+using SharpDX.D3DCompiler;
 using Device = SharpDX.Direct3D11.Device;
 using Valve.VR;
+using Buffer = SharpDX.Direct3D11.Buffer;
+using System.Runtime.InteropServices;
+using SrvSurvey.plotters;
 
 namespace SrvSurvey.vr
 {
@@ -15,113 +19,140 @@ namespace SrvSurvey.vr
     {
         private Overlay? overlay;
         private Device device;
-        private Form form;
-        private Texture2D? texture;
-        // private Bitmap bitmap;
+        private Size size;
+        private int top;
+        private int left;
+        Bitmap? bitmap;
+        private DeviceContext context;
+        private Texture2D texture;
+        private Texture_t overlayTex;
+        private PlotPos? lastPlotPos;
+        private bool visible;
 
-        public VROverlay(Form form) : base(ApplicationType.Overlay)
+        public VROverlay(string uniqueId) : base(ApplicationType.Overlay)
         {
             device = new Device(DriverType.Hardware, DeviceCreationFlags.BgraSupport);
-            overlay = new Overlay($"SrvSurvey {form.Name}[{form.Handle}]", $"SrvSurvey {form.Name}[{form.Handle}]");
+            context = device.ImmediateContext;
+
+            overlay = new Overlay(uniqueId, uniqueId);
+            // overlay.SetTextureFromFile(@"e:\dev\screen.png");
             overlay.WidthInMeters = 1f;
-            overlay.Show();
-
-            this.form = form;
-            form.Paint += FormPaint;
-            form.Move += FormMove;
-            form.FormClosed += FormOnFormClosed;
-            // bitmap = new Bitmap(form.ClientSize.Width, form.ClientSize.Height);
         }
 
-        private void FormOnFormClosed(object? sender, FormClosedEventArgs e)
+        private void UpdateSize(PlotBase form)
         {
-            overlay?.Hide();
-            overlay = null;
-        }
-
-        private void FormMove(object? sender, EventArgs e)
-        {
-            float radians = 0;// (float)((Math.PI / 180) * 90);
-            var rotation = Matrix4x4.CreateRotationX(radians);
-            var scale = 0.002f;
-            var translation = Matrix4x4.CreateTranslation(scale * (form.Left - Screen.PrimaryScreen.Bounds.Width / 2), -scale * (form.Top - Screen.PrimaryScreen.Bounds.Height / 2) + 1f, -3);
-            var transform = Matrix4x4.Multiply(rotation, translation);
-            overlay.Transform = transform.ToHmdMatrix34_t();
-        }
-
-        private void FormPaint(object? sender, PaintEventArgs e)
-        {
-            Update();
-        }
-
-        private void Update()
-        {
-            // texture = CaptureFormToTexture();
-            UpdateOverlay();
-        }
-
-        private void UpdateTexture()
-        {
-            var withNonClientArea = new Bitmap(form.Width, form.Height);
-            form.DrawToBitmap(withNonClientArea, new Rectangle(0, 0, form.Width, form.Height));
-
-            var screenPoint = form.PointToScreen(Point.Empty);
-            var bitmap = new Bitmap(form.ClientSize.Width, form.ClientSize.Height);
-            using (var g = Graphics.FromImage(bitmap))
+            if (this.bitmap == null || this.size != form.Size || this.top != form.Top || this.left != form.Left)
             {
-                g.DrawImage(withNonClientArea, 0, 0,
-                    new Rectangle(screenPoint.X - form.Location.X, screenPoint.Y - form.Location.Y,
-                        bitmap.Width, bitmap.Height),
-                    GraphicsUnit.Pixel);
+                if (Screen.PrimaryScreen == null) return;
+
+                this.size = form.Size;
+                this.top = form.Top;
+                this.left = form.Left;
+
+                bitmap = new Bitmap(this.size.Width, this.size.Height);
+                var textureDesc = new Texture2DDescription
+                {
+                    Width = bitmap.Width,
+                    Height = bitmap.Height,
+                    MipLevels = 1,
+                    ArraySize = 1,
+                    Format = Format.B8G8R8A8_UNorm,
+                    SampleDescription = new SampleDescription(1, 0),
+                    //Usage = ResourceUsage.Immutable,
+                    Usage = ResourceUsage.Default,
+                    BindFlags = BindFlags.ShaderResource,
+                    CpuAccessFlags = CpuAccessFlags.None,
+                    OptionFlags = ResourceOptionFlags.None
+                };
+                texture = new Texture2D(device, textureDesc);
+                overlayTex = new Texture_t()
+                {
+                    eColorSpace = EColorSpace.Auto,
+                    eType = ETextureType.DirectX,
+                    handle = texture.NativePointer
+                };
+            }
+        }
+
+        internal void Update(PlotBase form)
+        {
+            this.UpdateSize(form);
+            if (bitmap == null || overlay == null) return; 
+
+            if (form.Opacity == 0 || !form.Visible)
+            {
+                if (visible)
+                {
+                    visible = false;
+                    overlay.Hide();
+                }
+            }
+            else
+            {
+                if (!visible)
+                {
+                    visible = true;
+                    overlay.Show();
+                }
+                overlay.Alpha = (float)form.Opacity;
             }
 
-            withNonClientArea.Dispose();
+            if (!visible)
+            {
+                return;
+            }
+            
+            form.DrawToBitmap(bitmap, new Rectangle(0, 0, this.size.Width, this.size.Height));
 
             var rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
             var data = bitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
 
             try
             {
-                // if (texture == null)
+                DataBox dataBox = new DataBox(data.Scan0, data.Stride, 0);
+                var region = new ResourceRegion
                 {
-                    var textureDesc = new Texture2DDescription
-                    {
-                        Width = bitmap.Width,
-                        Height = bitmap.Height,
-                        MipLevels = 1,
-                        ArraySize = 1,
-                        Format = Format.B8G8R8A8_UNorm,
-                        SampleDescription = new SampleDescription(1, 0),
-                        Usage = ResourceUsage.Immutable,
-                        BindFlags = BindFlags.ShaderResource,
-                        CpuAccessFlags = CpuAccessFlags.None,
-                        OptionFlags = ResourceOptionFlags.None
-                    };
-
-                    DataRectangle dataRect = new DataRectangle(data.Scan0, data.Stride);
-
-                    texture = new Texture2D(device, textureDesc, new[] { dataRect });
-                }
+                    Left = 0,
+                    Top = 0,
+                    Front = 0,
+                    Right = bitmap.Width,
+                    Bottom = bitmap.Height,
+                    Back = 1
+                };                    
+                context.UpdateSubresource(dataBox, texture, 0, region);
+                context.Flush();
+                overlay.SetTexture(overlayTex);
             }
             finally
             {
                 bitmap.UnlockBits(data);
             }
+            
+            var pp = PlotPos.get(form.Name);
+            if (pp == null || lastPlotPos == pp) return; 
+            
+            var rotation = pp.vrRotation;
+            // yaw = Y, pitch = X, roll = Z - the Y and X really should be swapped like this  
+            var rot = Matrix4x4.CreateFromYawPitchRoll(MathF.PI / 180 * rotation.Y, 
+                MathF.PI / 180 * rotation.X, MathF.PI / 180 * rotation.Z);
+            
+            // divide by 10 to avoid decimals on the fomrs
+            var pos = Matrix4x4.CreateTranslation(pp.vrPosition with { Z = -pp.vrPosition.Z });
+            var sc = Matrix4x4.CreateScale(pp.vrScale / 10); // yes 10
+            
+            var tr = Matrix4x4.Multiply(rot, sc);
+            tr = Matrix4x4.Multiply(tr, pos);
+
+            this.overlay.Transform = tr.ToHmdMatrix34_t();
         }
 
-        private void UpdateOverlay()
+        public void Close()
         {
-            UpdateTexture();
-            if (texture == null) return;
-
-            var overlayTex = new Texture_t()
+            if (overlay != null)
             {
-                eColorSpace = EColorSpace.Auto,
-                eType = ETextureType.DirectX,
-                handle = texture.NativePointer
-            };
-            overlay.SetTexture(overlayTex);
-            device.ImmediateContext.Flush();
+                overlay.Hide();
+                overlay = null;
+            }
         }
     }
 }
