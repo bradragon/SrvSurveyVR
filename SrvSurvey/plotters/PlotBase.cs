@@ -3,6 +3,7 @@ using SrvSurvey.canonn;
 using SrvSurvey.forms;
 using SrvSurvey.game;
 using SrvSurvey.units;
+using SrvSurvey.vr;
 using SrvSurvey.widgets;
 using System.Diagnostics;
 using System.Drawing.Drawing2D;
@@ -18,6 +19,8 @@ namespace SrvSurvey.plotters
     [System.ComponentModel.DesignerCategory("")]
     internal abstract partial class PlotBase : Form, PlotterForm, IDisposable
     {
+        private VROverlay overlay;
+
         protected Game game = Game.activeGame!;
         public TrackingDelta? touchdownLocation0; // TODO: move to PlotSurfaceBase // make protected again
         protected TrackingDelta? srvLocation0; // TODO: move to PlotSurfaceBase
@@ -72,6 +75,8 @@ namespace SrvSurvey.plotters
 
             // Does this cause windows to become visible when alt-tabbing?
             this.Text = this.Name;
+
+            overlay = new VROverlay(this);
         }
 
         protected override bool ShowWithoutActivation => true;
