@@ -113,27 +113,21 @@ namespace SrvSurvey.game
 
         public async Task<Dictionary<string, int>> supply(string buildId, Dictionary<string, int> diff)
         {
-            Game.log(diff.formatWithHeader($"Colony.supply: {buildId}", "\r\n\t"));
+            //Game.log(diff.formatWithHeader($"Colony.supply: {buildId}", "\r\n\t"));
 
-            // ---
             var json1 = JsonConvert.SerializeObject(diff);
             var body = new StringContent(json1, Encoding.Default, "application/json");
             var url = $"{svcUri}/api/project/{buildId}/supply/{Game.activeGame?.Commander}";
             var response = await Colony.client.PutAsync(url, body);
 
-            // ---
-
-            //var body = new StringContent(JsonConvert.SerializeObject(diff), Encoding.Default, "application/json");
-            //var response = await Colony.client.PostAsync($"{svcUri}/api/project/{buildId}/supply/{Game.activeGame?.Commander}", body);
             var json = await response.Content.ReadAsStringAsync();
             var obj = JsonConvert.DeserializeObject<Dictionary<string, int>>(json)!;
             return obj;
         }
 
-
         public async Task<List<Project>> getCmdrProjects(string cmdr)
         {
-            Game.log($"Colony.getCmdrNeeds: {cmdr}");
+            Game.log($"Colony.getCmdrProjects: {cmdr}");
 
             var response = await Colony.client.GetAsync($"{svcUri}/api/cmdr/{cmdr}");
             var json = await response.Content.ReadAsStringAsync();
