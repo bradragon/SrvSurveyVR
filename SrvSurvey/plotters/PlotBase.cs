@@ -85,6 +85,9 @@ namespace SrvSurvey.plotters
 
         private void SetupVROverlay()
         {
+            // TODO: Make PlotTrackers behave
+            if (this.Name == nameof(PlotTrackers)) return;
+
             if (this.IsHandleCreated)
             {
                 try
@@ -95,7 +98,7 @@ namespace SrvSurvey.plotters
                 {
                     // log the message and disable VR for the rest of this session
                     Game.log($"SetupVROverlay error: {ex}");
-                    VROverlay.displayVR = true; // TODO: false?
+                    VROverlay.displayVR = true; // TODO: false
                 }
             }
         }

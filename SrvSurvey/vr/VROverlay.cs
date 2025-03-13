@@ -6,11 +6,8 @@ using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-using SharpDX.D3DCompiler;
 using Device = SharpDX.Direct3D11.Device;
 using Valve.VR;
-using Buffer = SharpDX.Direct3D11.Buffer;
-using System.Runtime.InteropServices;
 using SrvSurvey.plotters;
 using SrvSurvey.game;
 
@@ -21,6 +18,8 @@ namespace SrvSurvey.vr
         // Default to setting's value, but can be adjusted without clobbering the setting
         public static bool displayVR = Game.settings.displayVR;
 
+        private const int RepaintSeconds = 1;
+        
         private Overlay? overlay;
         private Device device;
         private Size size;
@@ -32,6 +31,7 @@ namespace SrvSurvey.vr
         private Texture_t overlayTex;
         private PlotPos? lastPlotPos;
         private bool visible;
+        private DateTime nextRepaint = new();
 
         public VROverlay(string uniqueId) : base(ApplicationType.Overlay)
         {
@@ -39,7 +39,6 @@ namespace SrvSurvey.vr
             context = device.ImmediateContext;
 
             overlay = new Overlay(uniqueId, uniqueId);
-            // overlay.SetTextureFromFile(@"e:\dev\screen.png");
             overlay.WidthInMeters = 1f;
         }
 
@@ -106,7 +105,11 @@ namespace SrvSurvey.vr
                 return;
             }
             
-            form.DrawToBitmap(bitmap, new Rectangle(0, 0, this.size.Width, this.size.Height));
+            if (DateTime.Now >= nextRepaint)
+            {
+                form.DrawToBitmap(bitmap, new Rectangle(0, 0, this.size.Width, this.size.Height));
+                nextRepaint = DateTime.Now.AddSeconds(RepaintSeconds);
+            }
 
             var rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
             var data = bitmap.LockBits(rect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);

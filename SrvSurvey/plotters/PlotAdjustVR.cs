@@ -205,7 +205,7 @@ namespace SrvSurvey.plotters
             drawTextAt2(ten, $"scale: {this.vrScale}");
             newLine(+ten, true);
 
-            return "Bumpers to adjust scale";
+            return "Scale: up/down";
         }
 
         enum Mode
