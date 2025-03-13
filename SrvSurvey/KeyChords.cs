@@ -83,6 +83,7 @@ namespace SrvSurvey
             { KeyAction.showColonyShopping, "ALT S" },
             { KeyAction.refreshColonyData, "ALT CTRL S" },
             { KeyAction.showSystemNotes, "CTRL SHIFT N" },
+            { KeyAction.adjustVR, "B0 B1 B7" }, // A + B + Menu
             { KeyAction.track1, "ALT CTRL F1" },
             { KeyAction.track2, "ALT CTRL F2" },
             { KeyAction.track3, "ALT CTRL F3" },
@@ -114,6 +115,7 @@ namespace SrvSurvey
                 case KeyAction.showColonyShopping: return toggleColonyShopping();
                 case KeyAction.refreshColonyData: return Game.activeGame?.cmdr?.loadColonyData().justDoIt() ?? true;
                 case KeyAction.showSystemNotes: return showSystemNotes();
+                case KeyAction.adjustVR: return toggleAdjustVR();
                 case KeyAction.track1: return trackLocation(1);
                 case KeyAction.track2: return trackLocation(2);
                 case KeyAction.track3: return trackLocation(3);
@@ -338,6 +340,17 @@ namespace SrvSurvey
             return true;
         }
 
+        private static bool toggleAdjustVR()
+        {
+            if (!PlotAdjustVR.forceShow)
+            {
+                PlotAdjustVR.forceShow = true;
+                Program.showPlotter<PlotAdjustVR>();
+            }
+
+            return true;
+        }
+
         private static bool trackLocation(int n)
         {
             if (Game.activeGame != null)
@@ -379,6 +392,8 @@ namespace SrvSurvey
         showColonyShopping,
         /// <summary> Force refresh ColonyData  </summary>
         refreshColonyData,
+        /// <summary> Force refresh ColonyData  </summary>
+        adjustVR,
         /// <summary> Track the current location as #1 </summary>
         track1,
         /// <summary> Track the current location as #2 </summary>

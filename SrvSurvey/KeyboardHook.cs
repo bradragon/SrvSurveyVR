@@ -213,7 +213,7 @@ namespace SrvSurvey
             {
                 fire(true);
             }
-            else if (Elite.focusElite)
+            else if (Elite.focusElite || Elite.focusSrvSurvey)
             {
                 var chord = string.Join(" ", pressed.Order());
                 KeyChords.processHook(chord);

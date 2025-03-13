@@ -69,6 +69,7 @@ namespace SrvSurvey.plotters
                     Program.control.BeginInvoke(() => Program.closePlotter<PlotSysStatus>());
                     return;
                 }
+                if (this.g == null) return;
 
                 this.dty = eight;
                 drawTextAt2(six, Res.Header, GameColors.fontSmall);

@@ -12,11 +12,15 @@ using Valve.VR;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using System.Runtime.InteropServices;
 using SrvSurvey.plotters;
+using SrvSurvey.game;
 
 namespace SrvSurvey.vr
 {
     public class VROverlay : OVRSharp.Application
     {
+        // Default to setting's value, but can be adjusted without clobbering the setting
+        public static bool displayVR = Game.settings.displayVR;
+
         private Overlay? overlay;
         private Device device;
         private Size size;

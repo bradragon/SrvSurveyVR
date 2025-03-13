@@ -230,6 +230,8 @@ namespace SrvSurvey
 
         public bool logDockToDockTimes = false;
 
+        public bool displayVR = true; // TODO: Make false before merging back into main
+
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public Notifications allowNotifications = new();
 

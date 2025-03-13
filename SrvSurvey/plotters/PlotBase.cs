@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using OVRSharp.Exceptions;
 using SrvSurvey.canonn;
 using SrvSurvey.forms;
 using SrvSurvey.game;
@@ -21,8 +22,6 @@ namespace SrvSurvey.plotters
     [System.ComponentModel.DesignerCategory("")]
     internal abstract partial class PlotBase : Form, PlotterForm, IDisposable
     {
-        // public bool tweakingVR;
-        public static bool displayVR = true;
         private VROverlay? vrOverlay;
 
         protected Game game = Game.activeGame!;
@@ -80,7 +79,7 @@ namespace SrvSurvey.plotters
             // Does this cause windows to become visible when alt-tabbing?
             this.Text = this.Name;
 
-            if (PlotBase.displayVR)
+            if (VROverlay.displayVR)
                 Program.defer(() => this.SetupVROverlay());
         }
 
@@ -88,14 +87,23 @@ namespace SrvSurvey.plotters
         {
             if (this.IsHandleCreated)
             {
-                this.vrOverlay = new VROverlay($"SrvSurvey {this.Name}[{this.Handle}]");
+                try
+                {
+                    this.vrOverlay = new VROverlay($"SrvSurvey {this.Name}[{this.Handle}]");
+                }
+                catch (Exception ex)
+                {
+                    // log the message and disable VR for the rest of this session
+                    Game.log($"SetupVROverlay error: {ex}");
+                    VROverlay.displayVR = true; // TODO: false?
+                }
             }
         }
 
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
-            
+
             if (this.vrOverlay != null)
             {
                 this.vrOverlay.Close();
@@ -219,7 +227,8 @@ namespace SrvSurvey.plotters
         #endregion
 
         /// <summary> When true, forces zero Opacity </summary>
-        public bool forceHide {
+        public bool forceHide
+        {
             get => this._forceHide;
             set
             {
@@ -250,7 +259,7 @@ namespace SrvSurvey.plotters
 
             if (this.Opacity != newOpacity)
                 this.Opacity = newOpacity; // ok
-            
+
             if (this.vrOverlay != null)
                 this.vrOverlay.Update(this);
         }
@@ -1642,7 +1651,7 @@ namespace SrvSurvey.plotters
         {
             return getVRScale(form.GetType().Name, defaultValue);
         }
-        
+
         public static float getVRScale(string formTypeName, float defaultValue = 1)
         {
             if (Program.tempHideAllPlotters || (!Elite.gameHasFocus && !Debugger.IsAttached)) return defaultValue;
@@ -1656,7 +1665,7 @@ namespace SrvSurvey.plotters
         {
             return getVRPosition(form.GetType().Name);
         }
-        
+
         public static Vector3 getVRPosition(string formTypeName)
         {
             if (Program.tempHideAllPlotters || (!Elite.gameHasFocus && !Debugger.IsAttached)) return Vector3.Zero;
@@ -1670,7 +1679,7 @@ namespace SrvSurvey.plotters
         {
             return getVRRotation(form.GetType().Name);
         }
-        
+
         public static Vector3 getVRRotation(string formTypeName)
         {
             if (Program.tempHideAllPlotters || (!Elite.gameHasFocus && !Debugger.IsAttached)) return Vector3.Zero;
@@ -1762,7 +1771,7 @@ namespace SrvSurvey.plotters
 
                 var keyStr = leftRight[0].ToLowerInvariant();
                 var valueStr = leftRight[1];
-                
+
                 if (Enum.TryParse<Horiz>(keyStr, true, out var newH))
                 {
                     this.h = newH;
