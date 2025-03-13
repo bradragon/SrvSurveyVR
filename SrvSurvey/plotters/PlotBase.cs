@@ -22,7 +22,7 @@ namespace SrvSurvey.plotters
     internal abstract partial class PlotBase : Form, PlotterForm, IDisposable
     {
         // public bool tweakingVR;
-        public static bool displayVR = true;
+        public bool displayVR = true;
         private VROverlay? vrOverlay;
 
         protected Game game = Game.activeGame!;
@@ -80,7 +80,7 @@ namespace SrvSurvey.plotters
             // Does this cause windows to become visible when alt-tabbing?
             this.Text = this.Name;
 
-            if (PlotBase.displayVR)
+            if (this.displayVR)
                 Program.defer(() => this.SetupVROverlay());
         }
 

@@ -26,6 +26,8 @@ namespace SrvSurvey.plotters
         {
             this.Size = Size.Empty;
             this.Font = GameColors.fontSmall;
+
+            this.displayVR = false;
         }
 
         protected override void OnLoad(EventArgs e)
