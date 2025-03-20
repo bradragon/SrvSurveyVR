@@ -1,8 +1,9 @@
-﻿using SrvSurvey.game;
+﻿using SrvSurvey.forms;
+using SrvSurvey.game;
 using SrvSurvey.vr;
 using SrvSurvey.widgets;
 using System.ComponentModel;
-// Currently, this does not require any localization
+using System.Numerics;
 
 namespace SrvSurvey.plotters
 {
@@ -18,13 +19,12 @@ namespace SrvSurvey.plotters
         /// <summary> When true, makes the plotter become visible </summary>
         public static bool forceShow = false;
 
-        private string targetName;
         private int idx;
         private Mode mode;
 
-        private int x, y, z;
-        private int vrScale;
-        private int yaw, pitch, roll;
+        private float x, y, z;
+        private float vrScale;
+        private float yaw, pitch, roll;
 
         private PlotAdjustVR() : base()
         {
@@ -46,6 +46,9 @@ namespace SrvSurvey.plotters
             this.Width = scaled(400);
             this.Height = scaled(300);
 
+            var names = Program.getAllPlotterNames();
+            this.setTarget(names[0]);
+
             base.OnLoad(e);
 
             this.initializeOnLoad();
@@ -61,6 +64,32 @@ namespace SrvSurvey.plotters
             PlotAdjustVR.forceShow = false;
         }
 
+        private void setTarget(string target)
+        {
+            FormAdjustOverlay.targetName = target;
+
+            var pp = PlotPos.get(FormAdjustOverlay.targetName);
+            if (pp == null) return;
+
+            // default to something visible if all zero's
+            if (pp.vrPosition == Vector3.Zero && pp.vrRotation == Vector3.Zero && pp.vrScale == 0)
+            {
+                pp.vrPosition.Z = 45;
+                pp.vrScale = 10;
+            }
+
+            this.x = pp.vrPosition.X;
+            this.y = pp.vrPosition.Y;
+            this.z = pp.vrPosition.Z;
+
+            this.pitch = pp.vrRotation.X;
+            this.yaw = pp.vrRotation.Y;
+            this.roll = pp.vrRotation.Z;
+
+            this.vrScale = pp.vrScale;
+            this.Invalidate();
+        }
+
         private void KeyboardHook_buttonsPressed(bool hook, string chord)
         {
             // only process when buttons are released
@@ -70,17 +99,28 @@ namespace SrvSurvey.plotters
 
             if (chord == "B1") // Btn B
             {
+                // Cancel
+                PlotPos.restore();
+                Program.repositionPlotters();
+                Program.invalidateActivePlotters();
+                FormAdjustOverlay.targetName = null;
                 this.Close();
             }
             else if (chord == "B0") // Btn A
             {
-                // commit changes
-                // TODO: ...
+                // Accept changes
+                PlotPos.saveCustomPositions();
+                FormAdjustOverlay.targetName = null;
+                this.Close();
             }
             else if (chord == "B2") // Btn X
             {
                 // next overlay
                 this.idx++;
+                var names = Program.getAllPlotterNames();
+                if (this.idx >= names.Length) this.idx = 0;
+                if (this.idx < 0) this.idx = names.Length - 1;
+                this.setTarget(names[this.idx]);
             }
             else if (chord == "B3") // Btn Y
             {
@@ -91,14 +131,17 @@ namespace SrvSurvey.plotters
 
             if (this.mode == Mode.position)
             {
-                if (chord == "PovU") this.y--;
-                else if (chord == "PovD") this.y++;
+                if (chord == "PovU") this.y++;
+                else if (chord == "PovD") this.y--;
                 else if (chord == "PovL") this.x--;
                 else if (chord == "PovR") this.x++;
                 else if (chord == "B4") this.z--; // left bumper
                 else if (chord == "B5") this.z++; // right bumper
 
-                // TODO: adjust the plotter
+                var pp = PlotPos.get(FormAdjustOverlay.targetName);
+                if (FormAdjustOverlay.targetName == null || pp == null) return;
+                pp.vrPosition = new Vector3(this.x, this.y, this.z);
+                Program.repositionPlotters();
             }
             else if (this.mode == Mode.rotation)
             {
@@ -109,7 +152,17 @@ namespace SrvSurvey.plotters
                 else if (chord == "B4") this.roll--; // left bumper
                 else if (chord == "B5") this.roll++; // right bumper
 
-                // TODO: adjust the plotter
+                if (pitch > 359) pitch = 0;
+                if (pitch < 0) pitch = 359;
+                if (yaw > 359) yaw = 0;
+                if (yaw < 0) yaw = 359;
+                if (roll > 359) roll = 0;
+                if (roll < 0) roll = 359;
+
+                var pp = PlotPos.get(FormAdjustOverlay.targetName);
+                if (FormAdjustOverlay.targetName == null || pp == null) return;
+                pp.vrRotation = new Vector3(this.pitch, this.yaw, this.roll);
+                Program.repositionPlotters();
             }
             else if (this.mode == Mode.scale)
             {
@@ -118,19 +171,24 @@ namespace SrvSurvey.plotters
 
                 if (this.vrScale < 1) this.vrScale = 1;
 
-                // TODO: adjust the plotter
+                var pp = PlotPos.get(FormAdjustOverlay.targetName);
+                if (FormAdjustOverlay.targetName == null || pp == null) return;
+                pp.vrScale = vrScale;
+                Program.repositionPlotters();
             }
 
-            this.Invalidate();
+
+            Program.defer(() => Program.invalidateActivePlotters());
+
+            // Sometimes this plotter does not update upon a key-press
+            //if (this.vrOverlay != null)
+            //    this.vrOverlay.Update(this);
         }
 
         protected override void onPaintPlotter(PaintEventArgs e)
         {
             // get plotter names and keep idx value legal
             var names = Program.getAllPlotterNames();
-            if (this.idx >= names.Length) this.idx = 0;
-            if (this.idx < 0) this.idx = names.Length - 1;
-            this.targetName = names[idx];
 
             // draw which overlays exist + which is selected
             drawTextAt2(two, "Overlay:");

@@ -22,7 +22,7 @@ namespace SrvSurvey.plotters
     [System.ComponentModel.DesignerCategory("")]
     internal abstract partial class PlotBase : Form, PlotterForm, IDisposable
     {
-        private VROverlay? vrOverlay;
+        protected VROverlay? vrOverlay;
 
         protected Game game = Game.activeGame!;
         public TrackingDelta? touchdownLocation0; // TODO: move to PlotSurfaceBase // make protected again

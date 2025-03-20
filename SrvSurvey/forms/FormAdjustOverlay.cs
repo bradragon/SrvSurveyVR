@@ -11,7 +11,7 @@ namespace SrvSurvey.forms
     internal partial class FormAdjustOverlay : FixedForm
     {
         /// <summary> The name of the current plotter getting adjusted, or null if none </summary>
-        public static string? targetName;
+        public static string? targetName; // TODO: This should probably be on PlotBase or something
 
         private Control[] enablementControls;
 
